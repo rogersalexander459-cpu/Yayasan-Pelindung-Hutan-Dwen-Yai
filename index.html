@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yayasan Pelindung Hutan Dwen Yai | Menjaga Hutan, Merawat Kehidupan</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Leaflet.js CSS & JS untuk WebGIS Interaktif -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Chart.js untuk Grafik Statistik Ekonomi & Monev -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Konfigurasi Warna Identitas Logo Yayasan Pelindung Hutan Dwen Yai -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        hutan: {
+                            DEFAULT: '#1B5E20',
+                            light: '#2E7D32',
+                            dark: '#0D3B12',
+                            50: '#E8F5E9',
+                            100: '#C8E6C9',
+                        },
+                        emas: {
+                            DEFAULT: '#FBC02D',
+                            dark: '#F9A825',
+                            light: '#FFF59D',
+                            50: '#FFFDE7',
+                        },
+                        sungai: {
+                            DEFAULT: '#0277BD',
+                            light: '#039BE5',
+                            dark: '#01579B',
+                            50: '#E1F5FE',
+                        },
+                        tanah: {
+                            DEFAULT: '#5D4037',
+                            light: '#795548',
+                            dark: '#3E2723',
+                            50: '#EFEBE9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styling untuk Peta, Scrollbar, dan Utilitas Visual */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAF8;
+            color: #1F2937;
+        }
+        h1, h2, h3, h4, .font-display {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .hero-pattern {
+            background-image: linear-gradient(135deg, rgba(13, 59, 18, 0.92) 0%, rgba(27, 94, 32, 0.85) 55%, rgba(93, 64, 55, 0.88) 100%),
+                              url('https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .logo-frame {
+            /* Memastikan logo ditampilkan utuh (object-contain) tanpa terpotong atau diubah */
+            object-fit: contain;
+        }
+        #webgis-map {
+            height: 540px;
+            width: 100%;
+            z-index: 10;
+            border-radius: 0.75rem;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2E7D32;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1B5E20;
+        }
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-emas selection:text-hutan-dark">
+
+    <!-- Toast Notification Container (Pengganti alert()) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- =====================================================================
+         1. HEADER & NAVIGASI UTAMA
+    ====================================================================== -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm no-print">
+        <!-- Top Info Bar -->
+        <div class="bg-hutan-dark text-white text-xs py-1.5 px-4 hidden md:block">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span><i class="fa-solid fa-location-dot text-emas mr-1.5"></i>Sentani, Kabupaten Jayapura, Provinsi Papua</span>
+                    <span><i class="fa-solid fa-globe text-sungai-light mr-1.5"></i>www.dwenyai.or.id</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-emas-light font-medium">"Menjaga Hutan, Merawat Kehidupan"</span>
+                    <span class="bg-hutan-light px-2 py-0.5 rounded text-[11px] font-semibold">WebGIS & Konservasi Papua</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navbar -->
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Brand & Logo Utuh -->
+                <a href="#beranda" class="flex items-center gap-3 group">
+                    <div class="w-14 h-14 flex-shrink-0 bg-black rounded-xl p-0.5 shadow-md border border-emas/60 flex items-center justify-center overflow-hidden">
+                        <img src="Logo Yayasan.jpeg" alt="Logo Yayasan Pelindung Hutan Dwen Yai" class="w-full h-full logo-frame"
+                             onerror="this.onerror=null; this.src='https://placehold.co/120x120/FBC02D/1B5E20?text=DWEN+YAI';">
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold tracking-wider uppercase text-tanah">Yayasan Pelindung Hutan</div>
+                        <div class="text-lg sm:text-xl font-extrabold text-hutan leading-tight group-hover:text-hutan-light transition">DWEN YAI</div>
+                        <div class="text-[11px] font-medium text-sungai hidden sm:block">Menjaga Hutan, Merawat Kehidupan</div>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Menu -->
+                <div class="hidden xl:flex items-center gap-1">
+                    <a href="#beranda" class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-hutan hover:bg-hutan-50 transition">Beranda</a>
+                    <a href="#tentang-kami" class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-hutan hover:bg-hutan-50 transition">Tentang Kami</a>
+                    
+                    <!-- Dropdown Program & 5 Divisi -->
+                    <div class="relative group">
+                        <a href="#program-divisi" class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-hutan hover:bg-hutan-50 transition flex items-center gap-1.5">
+                            Program & Divisi <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+                        </a>
+                        <div class="absolute left-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 p-2 z-50">
+                            <button onclick="navigateToDivision('div1')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-hutan-50 text-xs font-semibold text-gray-800 flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-md bg-hutan text-white flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                                <div>
+                                    <div class="text-hutan font-bold">Advokasi, Pemetaan & Perencanaan</div>
+                                    <div class="text-gray-500 font-normal">BRWA GIS, Kasus Adat & RKAT</div>
+                                </div>
+                            </button>
+                            <button onclick="navigateToDivision('div2')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-emas-50 text-xs font-semibold text-gray-800 flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-md bg-emas-dark text-white flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                                <div>
+                                    <div class="text-tanah font-bold">Pemberdayaan Ekonomi</div>
+                                    <div class="text-gray-500 font-normal">Ekowisata, HHBK & UMKM Adat</div>
+                                </div>
+                            </button>
+                            <button onclick="navigateToDivision('div3')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-sungai-50 text-xs font-semibold text-gray-800 flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-md bg-sungai text-white flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                                <div>
+                                    <div class="text-sungai-dark font-bold">Pengembangan SDM & SDA</div>
+                                    <div class="text-gray-500 font-normal">Pelatihan & Kader Lingkungan</div>
+                                </div>
+                            </button>
+                            <button onclick="navigateToDivision('div4')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-tanah-50 text-xs font-semibold text-gray-800 flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-md bg-tanah text-white flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                                <div>
+                                    <div class="text-tanah font-bold">Data & Informasi</div>
+                                    <div class="text-gray-500 font-normal">Repository SOP, Media & Open Data</div>
+                                </div>
+                            </button>
+                            <button onclick="navigateToDivision('div5')" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-red-50 text-xs font-semibold text-gray-800 flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-md bg-red-700 text-white flex items-center justify-center flex-shrink-0 mt-0.5">5</span>
+                                <div>
+                                    <div class="text-red-800 font-bold">Keamanan Hutan (Polhut)</div>
+                                    <div class="text-gray-500 font-normal">Smart Patrol GIS & Monitoring</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <a href="#peta-webgis" class="px-3 py-2 rounded-lg text-sm font-semibold text-hutan bg-hutan-50 hover:bg-hutan-100 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-map-location-dot text-sungai"></i> Peta Wilayah Adat
+                    </a>
+                    <a href="#berita" class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-hutan hover:bg-hutan-50 transition">Berita</a>
+                    <a href="#donasi" class="px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:text-hutan hover:bg-hutan-50 transition">Donasi</a>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="hidden sm:flex items-center gap-2.5">
+                    <a href="#donasi" class="px-4 py-2.5 rounded-xl bg-emas hover:bg-emas-dark text-hutan-dark font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-holding-heart"></i> Donasi
+                    </a>
+                    <button id="header-portal-btn" onclick="openPortalModal()" class="px-4 py-2.5 rounded-xl bg-hutan hover:bg-hutan-dark text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emas"></i>
+                        <span id="header-portal-text">Portal Karyawan</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="xl:hidden flex items-center gap-2">
+                    <button onclick="openPortalModal()" class="sm:hidden p-2.5 rounded-lg bg-hutan text-white text-xs font-bold">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </button>
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="p-2.5 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Drawer Menu -->
+            <div id="mobile-menu" class="hidden xl:hidden pb-4 pt-2 border-t border-gray-100 space-y-1">
+                <a href="#beranda" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-hutan-50">Beranda</a>
+                <a href="#tentang-kami" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-hutan-50">Tentang Kami & Struktur</a>
+                <a href="#program-divisi" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-hutan-50">Program & 5 Divisi</a>
+                <a href="#peta-webgis" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-lg font-semibold text-hutan bg-hutan-50">Peta Wilayah Adat (WebGIS)</a>
+                <a href="#berita" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-hutan-50">Berita & Publikasi</a>
+                <a href="#donasi" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-lg font-semibold text-gray-700 hover:bg-hutan-50">Donasi Online</a>
+                <div class="pt-2 flex gap-2">
+                    <button onclick="toggleMobileMenu(); openPortalModal();" class="w-full py-2.5 rounded-xl bg-hutan text-white font-bold text-sm">
+                        <i class="fa-solid fa-shield-halved text-emas mr-1.5"></i> Portal Karyawan (2FA)
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- =====================================================================
+         BANNER DASHBOARD INTERNAL (MUNCUL SAAT KARYAWAN LOGIN)
+    ====================================================================== -->
+    <section id="internal-employee-workspace" class="hidden bg-slate-900 text-white border-b-4 border-emas">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header Workspace -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-700">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emas text-hutan-dark flex items-center justify-center text-xl font-extrabold shadow-lg">
+                        <i class="fa-solid fa-id-badge"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-hutan-light text-white">TERVERIFIKASI 2FA</span>
+                            <span id="emp-role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emas text-hutan-dark">Ketua Yayasan</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold mt-1">Dashboard Internal Eksekutif — <span id="emp-display-name">Yohanis Dwen</span></h2>
+                        <p id="emp-access-desc" class="text-xs sm:text-sm text-slate-300">Hak Akses Penuh: Seluruh Sistem, Keuangan, dan Monitoring 5 Divisi</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <button onclick="logoutPortal()" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i> Keluar Portal
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Eksekutif -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 my-6">
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-xl">
+                    <div class="text-xs text-slate-400">Program Aktif</div>
+                    <div class="text-2xl font-extrabold text-emas mt-1">18</div>
+                    <div class="text-[11px] text-emerald-400 mt-1"><i class="fa-solid fa-arrow-up"></i> 5 Divisi</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-xl">
+                    <div class="text-xs text-slate-400">Wilayah Adat</div>
+                    <div class="text-2xl font-extrabold text-white mt-1">35.000 Ha</div>
+                    <div class="text-[11px] text-sky-400 mt-1">12 Kampung Adat</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-xl">
+                    <div class="text-xs text-slate-400">Patroli Polhut</div>
+                    <div class="text-2xl font-extrabold text-emerald-400 mt-1">142</div>
+                    <div class="text-[11px] text-slate-300 mt-1">Rute GPS Aktif</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-xl">
+                    <div class="text-xs text-slate-400">Kegiatan Lapangan</div>
+                    <div class="text-2xl font-extrabold text-white mt-1">64</div>
+                    <div class="text-[11px] text-emas mt-1">Tahun Berjalan</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-xl">
+                    <div class="text-xs text-slate-400">Mitra Donor</div>
+                    <div class="text-2xl font-extrabold text-sky-400 mt-1">11</div>
+                    <div class="text-[11px] text-slate-300 mt-1">Lokal & Global</div>
+                </div>
+                <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-xl">
+                    <div class="text-xs text-slate-400">Dana Program</div>
+                    <div class="text-xl font-extrabold text-emas mt-1">Rp 2,45 M</div>
+                    <div class="text-[11px] text-emerald-400 mt-1">Serapan 78,4%</div>
+                </div>
+            </div>
+
+            <!-- Modul Internal: Keuangan & Monitoring Evaluasi -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Modul Keuangan Internal -->
+                <div id="internal-finance-module" class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-base sm:text-lg flex items-center gap-2 text-emas">
+                            <i class="fa-solid fa-coins"></i> Modul Keuangan & RAB Yayasan
+                        </h3>
+                        <span id="finance-permission-tag" class="text-[11px] px-2.5 py-1 rounded bg-emerald-900/70 text-emerald-300 border border-emerald-700">Akses Edit & Approval</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+                            <div class="text-[11px] text-slate-400">Total Pendapatan</div>
+                            <div class="text-sm sm:text-base font-bold text-emerald-400 mt-0.5">Rp 2.450.000.000</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+                            <div class="text-[11px] text-slate-400">Realisasi Belanja</div>
+                            <div class="text-sm sm:text-base font-bold text-amber-400 mt-0.5">Rp 1.920.800.000</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+                            <div class="text-[11px] text-slate-400">Saldo Kas Program</div>
+                            <div class="text-sm sm:text-base font-bold text-sky-400 mt-0.5">Rp 529.200.000</div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-slate-400 border-b border-slate-700">
+                                <tr>
+                                    <th class="py-2">Kode RAB / Pos</th>
+                                    <th class="py-2">Anggaran</th>
+                                    <th class="py-2">Realisasi</th>
+                                    <th class="py-2">Bukti</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/70 text-slate-200">
+                                <tr>
+                                    <td class="py-2.5 font-medium">DIV1-GIS: Pemetaan Partisipatif 10 Kampung</td>
+                                    <td class="py-2.5">Rp 650.000.000</td>
+                                    <td class="py-2.5 text-emerald-400">Rp 520.000.000</td>
+                                    <td class="py-2.5"><span class="px-2 py-0.5 bg-slate-700 rounded text-[10px]">SPJ-014.pdf</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-medium">DIV5-PAT: Operasional Smart Patrol Polhut</td>
+                                    <td class="py-2.5">Rp 480.000.000</td>
+                                    <td class="py-2.5 text-emerald-400">Rp 395.000.000</td>
+                                    <td class="py-2.5"><span class="px-2 py-0.5 bg-slate-700 rounded text-[10px]">SPJ-022.pdf</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-medium">DIV2-EKO: Modal HHBK Madu Hutan & Ekowisata</td>
+                                    <td class="py-2.5">Rp 420.000.000</td>
+                                    <td class="py-2.5 text-emerald-400">Rp 340.800.000</td>
+                                    <td class="py-2.5"><span class="px-2 py-0.5 bg-slate-700 rounded text-[10px]">SPJ-031.pdf</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modul Monitoring & Evaluasi (Monev) -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-base sm:text-lg flex items-center gap-2 text-sky-400">
+                            <i class="fa-solid fa-chart-line"></i> Monitoring & Evaluasi Program (Monev)
+                        </h3>
+                        <span class="text-xs text-slate-400">Q4 2026</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-semibold">Pemetaan Wilayah Adat (Target: 10 Kampung | Realisasi: 8 Kampung)</span>
+                                <span class="font-bold text-emas">80%</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                <div class="bg-emas h-2.5 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-semibold">Patroli Keamanan Hutan SMART GIS (Target: 150 Rute | Realisasi: 142 Rute)</span>
+                                <span class="font-bold text-emerald-400">95%</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                <div class="bg-emerald-500 h-2.5 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-semibold">Sertifikasi Kader Lingkungan Adat (Target: 200 Kader | Realisasi: 168 Kader)</span>
+                                <span class="font-bold text-sky-400">84%</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                <div class="bg-sky-500 h-2.5 rounded-full" style="width: 84%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="font-semibold">Pengembangan Kelompok Usaha HHBK (Target: 15 Kelompok | Realisasi: 11 Kelompok)</span>
+                                <span class="font-bold text-amber-300">73%</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2.5">
+                                <div class="bg-amber-400 h-2.5 rounded-full" style="width: 73%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         2. BERANDA (HERO SECTION & RINGKASAN)
+    ====================================================================== -->
+    <section id="beranda" class="hero-pattern text-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                <!-- Kolom Kiri: Konten Hero -->
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-emas/50 text-emas-light text-xs sm:text-sm font-semibold">
+                        <i class="fa-solid fa-location-dot text-emas"></i>
+                        <span>Kabupaten Jayapura, Papua • Platform Konservasi & WebGIS Adat</span>
+                    </div>
+
+                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+                        Yayasan Pelindung Hutan <span class="text-emas">Dwen Yai</span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl font-semibold text-sky-200 flex items-center gap-2">
+                        <span class="w-8 h-1 bg-emas rounded-full inline-block"></span>
+                        "Menjaga Hutan, Merawat Kehidupan"
+                    </p>
+
+                    <!-- Quote Yayasan -->
+                    <blockquote class="bg-black/30 backdrop-blur-md border-l-4 border-emas p-4 sm:p-5 rounded-r-2xl max-w-2xl">
+                        <p class="italic text-gray-100 text-sm sm:text-base leading-relaxed">
+                            "Hutan adalah warisan leluhur, sumber kehidupan, dan masa depan generasi Papua."
+                        </p>
+                        <footer class="text-xs text-emas font-semibold mt-2">— Filosofi Yayasan Pelindung Hutan Dwen Yai</footer>
+                    </blockquote>
+
+                    <!-- Tombol CTA -->
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <a href="#peta-webgis" class="px-6 py-3.5 rounded-xl bg-emas hover:bg-emas-dark text-hutan-dark font-extrabold text-sm sm:text-base shadow-lg transition flex items-center gap-2.5">
+                            <i class="fa-solid fa-earth-asia text-lg"></i> Jelajahi Peta Wilayah Adat
+                        </a>
+                        <a href="#donasi" class="px-6 py-3.5 rounded-xl bg-sungai hover:bg-sungai-dark text-white font-bold text-sm sm:text-base shadow-lg border border-sky-300/30 transition flex items-center gap-2.5">
+                            <i class="fa-solid fa-hand-holding-heart"></i> Dukung Konservasi Papua
+                        </a>
+                        <button onclick="openDroneModal()" class="px-5 py-3.5 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-semibold text-sm border border-white/25 transition flex items-center gap-2">
+                            <i class="fa-solid fa-video text-emas"></i> Video Drone Hutan Adat
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Kartu Identitas & Logo Resmi Yayasan (Utuh Tanpa Dipotong) -->
+                <div class="lg:col-span-4 flex justify-center">
+                    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 sm:p-8 text-center shadow-2xl max-w-sm w-full">
+                        <div class="w-44 h-44 sm:w-52 sm:h-52 mx-auto bg-black rounded-2xl p-2 shadow-xl border-2 border-emas flex items-center justify-center">
+                            <img src="Logo Yayasan.jpeg" alt="Logo Resmi Yayasan Pelindung Hutan Dwen Yai" class="w-full h-full logo-frame"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/300x300/FBC02D/1B5E20?text=DWEN+YAI';">
+                        </div>
+                        <div class="mt-5">
+                            <span class="px-3 py-1 rounded-full bg-hutan text-emas text-xs font-bold border border-emas/40">Identitas Resmi Lembaga</span>
+                            <h2 class="text-lg font-extrabold text-white mt-2.5">YAYASAN PELINDUNG HUTAN DWEN YAI</h2>
+                            <p class="text-xs text-gray-200 mt-1">Konservasi Hutan • Perlindungan Wilayah Adat • Pemberdayaan Masyarakat Adat Jayapura</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistik Utama Yayasan (Floating Cards) -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border-b-4 border-hutan flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-hutan-50 text-hutan flex items-center justify-center text-2xl flex-shrink-0">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-hutan">35.000 Ha</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-600">Wilayah Adat Terpetakan</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border-b-4 border-emas-dark flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-emas-50 text-emas-dark flex items-center justify-center text-2xl flex-shrink-0">
+                    <i class="fa-solid fa-house-chimney-user"></i>
+                </div>
+                <div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-tanah">12 Kampung</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-600">Kampung Adat Dampingan</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border-b-4 border-tanah flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-tanah-50 text-tanah flex items-center justify-center text-2xl flex-shrink-0">
+                    <i class="fa-solid fa-tree"></i>
+                </div>
+                <div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-hutan-dark">7 Kawasan</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-600">Kawasan Hutan Adat</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border-b-4 border-sungai flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-sungai-50 text-sungai flex items-center justify-center text-2xl flex-shrink-0">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
+                <div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-sungai-dark">85 Titik</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-600">Mata Air & Hulu Sungai</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         3. TENTANG KAMI & STRUKTUR ORGANISASI
+    ====================================================================== -->
+    <section id="tentang-kami" class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+            <span class="px-3.5 py-1 rounded-full bg-hutan-50 text-hutan font-bold text-xs uppercase tracking-wider">Profil Lembaga</span>
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 mt-2">Tentang Yayasan Pelindung Hutan Dwen Yai</h2>
+            <p class="text-gray-600 text-sm sm:text-base mt-3">
+                Lembaga konservasi hutan, perlindungan hak wilayah adat, pemberdayaan ekonomi lestari, dan penguatan kapasitas masyarakat adat di Kabupaten Jayapura, Papua.
+            </p>
+        </div>
+
+        <!-- Sejarah, Makna, Visi, Misi & Nilai Dasar -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-14">
+            <!-- Sejarah & Makna Dwen Yai -->
+            <div class="lg:col-span-6 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-tanah text-white flex items-center justify-center">
+                        <i class="fa-solid fa-landmark"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-tanah">Sejarah & Makna "Dwen Yai"</h3>
+                </div>
+                <p class="text-sm sm:text-base text-gray-700 leading-relaxed">
+                    <strong>Yayasan Pelindung Hutan Dwen Yai</strong> lahir dari kesadaran kolektif tokoh adat, intelektual muda Papua, dan pegiat lingkungan di Kabupaten Jayapura untuk menjaga bentang alam Pegunungan Cyclops, Lembah Grime, dan pesisir Tanah Tabi dari ancaman deforestasi dan perampasan ruang hidup adat.
+                </p>
+                <div class="bg-emas-50 border border-emas/60 rounded-xl p-4">
+                    <h4 class="font-bold text-sm text-tanah mb-1"><i class="fa-solid fa-sun text-emas-dark mr-1.5"></i>Makna Filosofis Nama & Logo</h4>
+                    <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                        <strong>Dwen Yai</strong> bermakna panggilan penjaga rimba dan sumber kehidupan leluhur. Elemen logo memadukan <strong>Hijau Hutan</strong> (kelestarian ekosistem), <strong>Kuning Emas & Matahari</strong> (harapan dan pencerahan generasi), <strong>Biru Sungai</strong> (kemurnian sumber air), dan <strong>Coklat Tanah & Rumah Adat</strong> (kedaulatan tanah ulayat).
+                    </p>
+                </div>
+
+                <!-- Nilai-Nilai Dasar -->
+                <div>
+                    <h4 class="font-bold text-sm text-gray-900 mb-2.5">Nilai-Nilai Dasar Yayasan:</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-semibold">
+                        <div class="bg-hutan-50 text-hutan px-3 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Kedaulatan Adat</div>
+                        <div class="bg-sungai-50 text-sungai-dark px-3 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Kelestarian Alam</div>
+                        <div class="bg-emas-50 text-tanah px-3 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Transparansi</div>
+                        <div class="bg-tanah-50 text-tanah px-3 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Partisipatif</div>
+                        <div class="bg-hutan-50 text-hutan px-3 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Keadilan Ekologis</div>
+                        <div class="bg-sungai-50 text-sungai-dark px-3 py-2 rounded-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Kemandirian</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visi & Misi -->
+            <div class="lg:col-span-6 space-y-6">
+                <!-- Visi -->
+                <div class="bg-gradient-to-br from-hutan to-hutan-dark text-white rounded-2xl p-6 sm:p-8 shadow-md">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emas text-hutan-dark text-xs font-extrabold mb-3">
+                        <i class="fa-solid fa-eye"></i> VISI YAYASAN
+                    </div>
+                    <p class="text-lg sm:text-xl font-bold leading-relaxed">
+                        "Terwujudnya hutan dan wilayah adat Papua yang lestari, berdaulat, serta masyarakat adat yang mandiri, sejahtera, dan berdaya dalam mengelola sumber daya alam secara berkelanjutan."
+                    </p>
+                </div>
+
+                <!-- Misi -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sungai-50 text-sungai-dark text-xs font-extrabold mb-4">
+                        <i class="fa-solid fa-bullseye"></i> MISI STRATEGIS
+                    </div>
+                    <ul class="space-y-3 text-sm text-gray-700">
+                        <li class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-hutan text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                            <span>Mendorong pengakuan dan perlindungan hukum atas wilayah adat dan hutan adat melalui pemetaan partisipatif berbasis spasial (WebGIS).</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-hutan text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                            <span>Memperkuat sistem pengamanan hutan berbasis masyarakat adat (Polhut Adat & Smart Patrol) untuk mencegah kerusakan hutan dan mata air.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-hutan text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                            <span>Mengembangkan ekonomi hijau berbasis Hasil Hutan Bukan Kayu (HHBK), ekowisata, dan UMKM masyarakat adat.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-full bg-hutan text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                            <span>Meningkatkan kapasitas SDM generasi muda Papua sebagai kader pelindung lingkungan dan pengelola data konservasi.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Struktur Organisasi Interaktif -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-100">
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900">Struktur Organisasi Yayasan</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-1">Tata kelola kelembagaan sesuai Akta Pendirian & Statuta Yayasan Pelindung Hutan Dwen Yai</p>
+                </div>
+                <span class="px-3 py-1.5 rounded-xl bg-tanah-50 text-tanah text-xs font-bold self-start">Kabupaten Jayapura</span>
+            </div>
+
+            <!-- Bagan Organisasi Visual -->
+            <div class="space-y-6">
+                <!-- Level 1: Pembina & Pengawas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                    <div class="bg-tanah text-white p-4 rounded-2xl text-center shadow">
+                        <div class="text-[11px] uppercase tracking-wider text-emas font-bold">Organ Tertinggi</div>
+                        <div class="text-lg font-extrabold mt-0.5">DEWAN PEMBINA</div>
+                        <div class="text-xs text-tanah-50 mt-1">Tokoh Adat & Pendiri Yayasan</div>
+                    </div>
+                    <div class="bg-sungai-dark text-white p-4 rounded-2xl text-center shadow">
+                        <div class="text-[11px] uppercase tracking-wider text-sky-200 font-bold">Audit & Kepatuhan</div>
+                        <div class="text-lg font-extrabold mt-0.5">DEWAN PENGAWAS</div>
+                        <div class="text-xs text-sky-100 mt-1">Pengawasan Tata Kelola & Keuangan</div>
+                    </div>
+                </div>
+
+                <!-- Level 2: Pengurus Inti -->
+                <div class="bg-hutan-50 border border-hutan/20 rounded-2xl p-5">
+                    <div class="text-center text-xs font-extrabold uppercase tracking-wider text-hutan mb-4">BADAN PENGURUS HARIAN</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-xl border-l-4 border-hutan shadow-sm">
+                            <div class="text-xs font-bold text-hutan">Ketua Yayasan</div>
+                            <div class="font-extrabold text-gray-900 text-sm mt-1">Yohanis Dwen, S.Hut</div>
+                            <div class="text-[11px] text-gray-500 mt-1">Pimpinan Eksekutif & Kebijakan</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border-l-4 border-hutan-light shadow-sm">
+                            <div class="text-xs font-bold text-hutan-light">Wakil Ketua</div>
+                            <div class="font-extrabold text-gray-900 text-sm mt-1">Marten Yoku, S.Si</div>
+                            <div class="text-[11px] text-gray-500 mt-1">Manajemen Program & Kemitraan</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border-l-4 border-sungai shadow-sm">
+                            <div class="text-xs font-bold text-sungai">Sekretaris</div>
+                            <div class="font-extrabold text-gray-900 text-sm mt-1">Dorcas Wally, S.Sos</div>
+                            <div class="text-[11px] text-gray-500 mt-1">Administrasi, Legal & Kesekretariatan</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border-l-4 border-emas-dark shadow-sm">
+                            <div class="text-xs font-bold text-emas-dark">Bendahara</div>
+                            <div class="font-extrabold text-gray-900 text-sm mt-1">Esterina Kopeuw, S.E</div>
+                            <div class="text-[11px] text-gray-500 mt-1">Keuangan, RAB & Pelaporan Donor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 3: Koordinator Program & 5 Divisi Operasional -->
+                <div class="text-center">
+                    <div class="inline-block bg-emas text-hutan-dark px-6 py-2.5 rounded-xl font-extrabold text-sm shadow-sm mb-4">
+                        <i class="fa-solid fa-diagram-project mr-1.5"></i> Koordinator Program & 5 Divisi Operasional
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-left">
+                        <button onclick="navigateToDivision('div1')" class="p-4 rounded-xl bg-white border border-gray-200 hover:border-hutan hover:shadow-md transition group">
+                            <span class="text-xs font-extrabold text-hutan">DIVISI 1</span>
+                            <div class="font-bold text-sm text-gray-900 mt-1 group-hover:text-hutan">Advokasi, Pemetaan & Perencanaan</div>
+                            <div class="text-[11px] text-gray-500 mt-2">Lihat Dashboard <i class="fa-solid fa-arrow-right ml-1"></i></div>
+                        </button>
+                        <button onclick="navigateToDivision('div2')" class="p-4 rounded-xl bg-white border border-gray-200 hover:border-emas-dark hover:shadow-md transition group">
+                            <span class="text-xs font-extrabold text-emas-dark">DIVISI 2</span>
+                            <div class="font-bold text-sm text-gray-900 mt-1 group-hover:text-tanah">Pemberdayaan Ekonomi</div>
+                            <div class="text-[11px] text-gray-500 mt-2">Lihat Dashboard <i class="fa-solid fa-arrow-right ml-1"></i></div>
+                        </button>
+                        <button onclick="navigateToDivision('div3')" class="p-4 rounded-xl bg-white border border-gray-200 hover:border-sungai hover:shadow-md transition group">
+                            <span class="text-xs font-extrabold text-sungai">DIVISI 3</span>
+                            <div class="font-bold text-sm text-gray-900 mt-1 group-hover:text-sungai-dark">Pengembangan SDM & SDA</div>
+                            <div class="text-[11px] text-gray-500 mt-2">Lihat Dashboard <i class="fa-solid fa-arrow-right ml-1"></i></div>
+                        </button>
+                        <button onclick="navigateToDivision('div4')" class="p-4 rounded-xl bg-white border border-gray-200 hover:border-tanah hover:shadow-md transition group">
+                            <span class="text-xs font-extrabold text-tanah">DIVISI 4</span>
+                            <div class="font-bold text-sm text-gray-900 mt-1 group-hover:text-tanah">Data & Informasi</div>
+                            <div class="text-[11px] text-gray-500 mt-2">Lihat Dashboard <i class="fa-solid fa-arrow-right ml-1"></i></div>
+                        </button>
+                        <button onclick="navigateToDivision('div5')" class="p-4 rounded-xl bg-white border border-gray-200 hover:border-red-600 hover:shadow-md transition group">
+                            <span class="text-xs font-extrabold text-red-700">DIVISI 5</span>
+                            <div class="font-bold text-sm text-gray-900 mt-1 group-hover:text-red-700">Keamanan Hutan (Polhut)</div>
+                            <div class="text-[11px] text-gray-500 mt-2">Lihat Dashboard <i class="fa-solid fa-arrow-right ml-1"></i></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         4. PROGRAM & DASHBOARD 5 DIVISI OPERASIONAL (INTERAKTIF DENGAN TAB)
+    ====================================================================== -->
+    <section id="program-divisi" class="py-16 bg-hutan-50/70 border-y border-hutan/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <span class="px-3.5 py-1 rounded-full bg-hutan text-emas font-bold text-xs uppercase tracking-wider">Sistem Informasi Divisi</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 mt-2">Program & Dashboard 5 Divisi Operasional</h2>
+                <p class="text-gray-600 text-sm sm:text-base mt-2">
+                    Pilih tab divisi di bawah ini untuk memantau capaian program, advokasi wilayah adat, ekonomi HHBK, pelatihan, repository data, dan patroli keamanan hutan.
+                </p>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
+                <button onclick="switchDivisionTab('div1')" id="tab-btn-div1" class="div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-hutan text-white shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced"></i> 1. Advokasi, Pemetaan & Perencanaan
+                </button>
+                <button onclick="switchDivisionTab('div2')" id="tab-btn-div2" class="div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-seedling"></i> 2. Pemberdayaan Ekonomi
+                </button>
+                <button onclick="switchDivisionTab('div3')" id="tab-btn-div3" class="div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear"></i> 3. Pengembangan SDM & SDA
+                </button>
+                <button onclick="switchDivisionTab('div4')" id="tab-btn-div4" class="div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-database"></i> 4. Data & Informasi
+                </button>
+                <button onclick="switchDivisionTab('div5')" id="tab-btn-div5" class="div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-shield-cat"></i> 5. Keamanan Hutan (Polhut)
+                </button>
+            </div>
+
+            <!-- TAB CONTENT 1: DIVISI 1 - ADVOKASI, PEMETAAN DAN PERENCANAAN -->
+            <div id="tab-content-div1" class="div-tab-content bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-hutan-50 text-hutan font-bold text-xs">DIVISI UNGGULAN • BRWA & ADVOKASI</span>
+                        <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1.5">Divisi Advokasi, Pemetaan dan Perencanaan</h3>
+                        <p class="text-sm text-gray-600 mt-1">Pendampingan sengketa lahan adat, registrasi wilayah adat, serta penyusunan RKAT dan TOR program.</p>
+                    </div>
+                    <a href="#peta-webgis" class="px-4 py-2.5 rounded-xl bg-sungai hover:bg-sungai-dark text-white font-bold text-xs sm:text-sm transition self-start flex items-center gap-2">
+                        <i class="fa-solid fa-map"></i> Buka Modul Pemetaan WebGIS
+                    </a>
+                </div>
+
+                <!-- Modul Advokasi: Tabel Kasus -->
+                <div class="mt-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <h4 class="font-extrabold text-base sm:text-lg text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-gavel text-hutan"></i> Modul Advokasi & Pendampingan Kasus Wilayah Adat
+                        </h4>
+                        <div class="flex items-center gap-3 text-xs font-semibold">
+                            <span>🟢 Selesai (3)</span>
+                            <span>🟡 Dalam Proses (4)</span>
+                            <span>🔴 Konflik Aktif (2)</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+                                <tr>
+                                    <th class="p-3.5">Kode & Nama Kasus</th>
+                                    <th class="p-3.5">Lokasi Kampung Adat</th>
+                                    <th class="p-3.5">Status</th>
+                                    <th class="p-3.5">Timeline Advokasi</th>
+                                    <th class="p-3.5">Dokumen Pendukung</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-3.5 font-bold text-gray-900">ADV-01: Penetapan Batas Hutan Adat Suku Moy</td>
+                                    <td class="p-3.5 text-gray-600">Distrik Kemtuk Gresi</td>
+                                    <td class="p-3.5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">🟢 Selesai</span></td>
+                                    <td class="p-3.5 text-gray-600">SK Bupati & Berita Acara Kesepakatan Adat</td>
+                                    <td class="p-3.5"><button onclick="showToast('Mengunduh Berkas_SK_Adat_Moy.pdf', 'success')" class="text-sungai font-semibold hover:underline"><i class="fa-solid fa-file-pdf mr-1"></i>SK_Adat_Moy.pdf</button></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-3.5 font-bold text-gray-900">ADV-02: Perlindungan Zona Penyangga Cyclops</td>
+                                    <td class="p-3.5 text-gray-600">Kampung Hobong & Ifar</td>
+                                    <td class="p-3.5"><span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-xs">🟡 Dalam Proses</span></td>
+                                    <td class="p-3.5 text-gray-600">Verifikasi Spasial & Mediasi BPN/KLHK</td>
+                                    <td class="p-3.5"><button onclick="showToast('Membuka Peta_Verifikasi_Cyclops.pdf', 'info')" class="text-sungai font-semibold hover:underline"><i class="fa-solid fa-file-pdf mr-1"></i>Peta_Verifikasi.pdf</button></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-3.5 font-bold text-gray-900">ADV-03: Penolakan Pembukaan Lahan Ilegal Hulu Sungai</td>
+                                    <td class="p-3.5 text-gray-600">Distrik Nimboran</td>
+                                    <td class="p-3.5"><span class="px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-bold text-xs">🔴 Konflik Aktif</span></td>
+                                    <td class="p-3.5 text-gray-600">Somasi Hukum Adat & Laporan Polhut</td>
+                                    <td class="p-3.5"><button onclick="showToast('Membuka Kronologi_Nimboran.pdf', 'warning')" class="text-sungai font-semibold hover:underline"><i class="fa-solid fa-file-pdf mr-1"></i>Kronologi_Hukum.pdf</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modul Perencanaan (RKAT, TOR, RAB) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                    <div class="p-4 rounded-2xl bg-hutan-50 border border-hutan/15">
+                        <div class="font-extrabold text-sm text-hutan"><i class="fa-solid fa-calendar-check mr-1.5"></i>RKAT & Program Tahunan</div>
+                        <p class="text-xs text-gray-600 mt-1">14 Rencana Kerja Tahunan telah disahkan Rapat Kerja Yayasan 2026.</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-emas-50 border border-emas/40">
+                        <div class="font-extrabold text-sm text-tanah"><i class="fa-solid fa-file-signature mr-1.5"></i>TOR Kegiatan Lapangan</div>
+                        <p class="text-xs text-gray-600 mt-1">Standar Kerangka Acuan Kerja pemetaan partisipatif & musyawarah adat.</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-sungai-50 border border-sungai/20">
+                        <div class="font-extrabold text-sm text-sungai-dark"><i class="fa-solid fa-calculator mr-1.5"></i>RAB & Monitoring</div>
+                        <p class="text-xs text-gray-600 mt-1">Terintegrasi langsung dengan Modul Keuangan & Monev Internal.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 2: DIVISI 2 - PEMBERDAYAAN EKONOMI -->
+            <div id="tab-content-div2" class="div-tab-content hidden bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-gray-200">
+                <div class="pb-6 border-b border-gray-100">
+                    <span class="px-3 py-1 rounded-full bg-emas-50 text-tanah font-bold text-xs">EKONOMI HIJAU MASYARAKAT ADAT</span>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1.5">Divisi Pemberdayaan Ekonomi</h3>
+                    <p class="text-sm text-gray-600 mt-1">Pengembangan usaha berbasis hutan lestari: Ekowisata berbasis kampung, Hasil Hutan Bukan Kayu (HHBK), dan UMKM Masyarakat.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <!-- Ekowisata -->
+                        <div class="p-4 rounded-2xl bg-sungai-50 border border-sungai/20">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-extrabold text-sungai-dark text-sm sm:text-base"><i class="fa-solid fa-compass mr-1.5"></i>1. Ekowisata Hutan Adat & Pengamatan Cenderawasih</h4>
+                                <span class="text-xs font-bold bg-white px-2.5 py-1 rounded-lg text-sungai">4 Paket Wisata</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                                <div class="bg-white p-2.5 rounded-xl"><div class="text-xs text-gray-500">Pengunjung</div><div class="font-extrabold text-gray-900">1.240 Org</div></div>
+                                <div class="bg-white p-2.5 rounded-xl"><div class="text-xs text-gray-500">Pemandu Lokal</div><div class="font-extrabold text-gray-900">28 Pemuda</div></div>
+                                <div class="bg-white p-2.5 rounded-xl"><div class="text-xs text-gray-500">Pendapatan</div><div class="font-extrabold text-hutan">Rp 185 Jt</div></div>
+                            </div>
+                        </div>
+
+                        <!-- HHBK -->
+                        <div class="p-4 rounded-2xl bg-emas-50 border border-emas/40">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-extrabold text-tanah text-sm sm:text-base"><i class="fa-solid fa-jar mr-1.5"></i>2. Hasil Hutan Bukan Kayu (HHBK)</h4>
+                                <span class="text-xs font-bold bg-white px-2.5 py-1 rounded-lg text-tanah">11 Kelompok Tani</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+                                <div class="bg-white p-2.5 rounded-xl"><strong>Madu Hutan Tabi:</strong> 450 Liter/tahun</div>
+                                <div class="bg-white p-2.5 rounded-xl"><strong>Buah Hutan & Sagu:</strong> 2,8 Ton olahan</div>
+                                <div class="bg-white p-2.5 rounded-xl"><strong>Tanaman Obat:</strong> Minyak Lawang & Sarang Semut</div>
+                            </div>
+                        </div>
+
+                        <!-- UMKM Masyarakat -->
+                        <div class="p-4 rounded-2xl bg-hutan-50 border border-hutan/20">
+                            <h4 class="font-extrabold text-hutan text-sm sm:text-base"><i class="fa-solid fa-store mr-1.5"></i>3. UMKM Masyarakat Adat</h4>
+                            <p class="text-xs text-gray-700 mt-1">Kerajinan Noken kulit kayu, ukiran khas Sentani, dan olahan tepung sagu kemasan dengan omzet kolektif Rp 310 Juta/tahun.</p>
+                        </div>
+                    </div>
+
+                    <!-- Grafik Perkembangan Ekonomi -->
+                    <div class="lg:col-span-5 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                        <h4 class="font-bold text-sm text-gray-800 mb-3 text-center">Grafik Pertumbuhan Pendapatan UMKM & HHBK (Juta Rp)</h4>
+                        <canvas id="economyChart" height="230"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 3: DIVISI 3 - PENGEMBANGAN SDM DAN SDA -->
+            <div id="tab-content-div3" class="div-tab-content hidden bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-gray-200">
+                <div class="pb-6 border-b border-gray-100">
+                    <span class="px-3 py-1 rounded-full bg-sungai-50 text-sungai-dark font-bold text-xs">KAPASITAS MASYARAKAT ADAT</span>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1.5">Divisi Pengembangan SDM dan SDA</h3>
+                    <p class="text-sm text-gray-600 mt-1">Peningkatan kapasitas masyarakat adat, pelatihan pemetaan partisipatif, kaderisasi pemuda lingkungan, dan pengelolaan SDA lestari.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50">
+                        <div class="w-10 h-10 rounded-xl bg-sungai text-white flex items-center justify-center mb-3"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <h4 class="font-extrabold text-gray-900">Pelatihan & Sertifikasi</h4>
+                        <ul class="mt-3 space-y-2 text-xs text-gray-700">
+                            <li class="bg-white p-2.5 rounded-lg border"><strong>GIS & Drone Mapping:</strong> 42 Peserta (Bersertifikat)</li>
+                            <li class="bg-white p-2.5 rounded-lg border"><strong>Budidaya Lebah Madu Hutan:</strong> 65 Peserta</li>
+                            <li class="bg-white p-2.5 rounded-lg border"><strong>Paralegal Hak Masyarakat Adat:</strong> 34 Peserta</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50">
+                        <div class="w-10 h-10 rounded-xl bg-hutan text-white flex items-center justify-center mb-3"><i class="fa-solid fa-people-group"></i></div>
+                        <h4 class="font-extrabold text-gray-900">Kader Lingkungan Adat</h4>
+                        <div class="text-3xl font-extrabold text-hutan mt-2">168 Kader</div>
+                        <p class="text-xs text-gray-600 mt-1">Tersebar di 12 Kampung Adat (Sentani, Waibu, Kemtuk Gresi, Nimboran, Depapre).</p>
+                        <div class="mt-3 text-xs font-semibold text-hutan bg-hutan-50 p-2 rounded-lg">Aktif dalam pembibitan 15.000 pohon endemik Papua.</div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-gray-200 bg-gray-50">
+                        <div class="w-10 h-10 rounded-xl bg-tanah text-white flex items-center justify-center mb-3"><i class="fa-solid fa-address-book"></i></div>
+                        <h4 class="font-extrabold text-gray-900">Database SDM & Jejaring</h4>
+                        <div class="space-y-2 mt-3 text-xs">
+                            <div class="flex justify-between bg-white p-2.5 rounded-lg border"><span>Relawan Konservasi</span><strong>85 Orang</strong></div>
+                            <div class="flex justify-between bg-white p-2.5 rounded-lg border"><span>Narasumber & Peneliti</span><strong>24 Ahli</strong></div>
+                            <div class="flex justify-between bg-white p-2.5 rounded-lg border"><span>Mitra Akademisi & NGO</span><strong>11 Lembaga</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 4: DIVISI 4 - DATA DAN INFORMASI -->
+            <div id="tab-content-div4" class="div-tab-content hidden bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-gray-200">
+                <div class="pb-6 border-b border-gray-100">
+                    <span class="px-3 py-1 rounded-full bg-tanah-50 text-tanah font-bold text-xs">PUSAT DATA DIGITAL & OPEN DATA</span>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1.5">Divisi Data dan Informasi</h3>
+                    <p class="text-sm text-gray-600 mt-1">Repository dokumen SOP yayasan, laporan publik, pusat dokumentasi media drone, serta Open Data spasial.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <!-- Repository SOP & Dokumen -->
+                    <div>
+                        <h4 class="font-extrabold text-base text-gray-900 mb-3"><i class="fa-solid fa-folder-open text-tanah mr-1.5"></i>Repository Dokumen & SOP Resmi</h4>
+                        <div class="space-y-2.5 text-xs sm:text-sm">
+                            <div class="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:bg-gray-50">
+                                <div>
+                                    <div class="font-bold text-gray-900">SOP-01: Pemetaan Partisipatif Wilayah Adat (Standar BRWA)</div>
+                                    <div class="text-xs text-gray-500">Divisi Pemetaan • PDF (2.4 MB)</div>
+                                </div>
+                                <button onclick="showToast('Mengunduh SOP-01 Pemetaan Partisipatif...', 'success')" class="px-3 py-1.5 rounded-lg bg-hutan text-white text-xs font-bold">Unduh</button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:bg-gray-50">
+                                <div>
+                                    <div class="font-bold text-gray-900">SOP-02: Protokol Patroli Polhut & Pelaporan SMART GIS</div>
+                                    <div class="text-xs text-gray-500">Divisi Keamanan Hutan • PDF (1.8 MB)</div>
+                                </div>
+                                <button onclick="showToast('Mengunduh SOP-02 Patroli Polhut...', 'success')" class="px-3 py-1.5 rounded-lg bg-hutan text-white text-xs font-bold">Unduh</button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:bg-gray-50">
+                                <div>
+                                    <div class="font-bold text-gray-900">LAP-2026: Laporan Tahunan Konservasi Dwen Yai</div>
+                                    <div class="text-xs text-gray-500">Publik & Donor • PDF (5.1 MB)</div>
+                                </div>
+                                <button onclick="showToast('Mengunduh Laporan Tahunan 2026...', 'success')" class="px-3 py-1.5 rounded-lg bg-hutan text-white text-xs font-bold">Unduh</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Open Data GIS & Media Center -->
+                    <div class="space-y-4">
+                        <div class="p-5 rounded-2xl bg-sungai-50 border border-sungai/20">
+                            <h4 class="font-extrabold text-sungai-dark text-base"><i class="fa-solid fa-cloud-arrow-down mr-1.5"></i>Open Data Spasial (GeoJSON / Shapefile)</h4>
+                            <p class="text-xs text-gray-600 mt-1">Dataset batas indikatif wilayah adat, sebaran titik mata air, dan tutupan hutan Kabupaten Jayapura.</p>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <button onclick="showToast('Mengunduh Dataset_Mata_Air_Jayapura.geojson', 'info')" class="px-3 py-1.5 rounded-lg bg-sungai text-white text-xs font-bold">Dataset Mata Air (.geojson)</button>
+                                <button onclick="showToast('Mengunduh Batas_Hutan_Adat_2026.zip', 'info')" class="px-3 py-1.5 rounded-lg bg-white border border-sungai text-sungai-dark text-xs font-bold">Batas Hutan Adat (.shp)</button>
+                            </div>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-tanah-50 border border-tanah/20">
+                            <h4 class="font-extrabold text-tanah text-base"><i class="fa-solid fa-photo-film mr-1.5"></i>Media Center & Drone Mapping</h4>
+                            <p class="text-xs text-gray-600 mt-1">Arsip 1.450+ foto lapangan, 38 video dokumenter masyarakat adat, dan 19 peta ortofoto drone resolusi tinggi.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT 5: DIVISI 5 - KEAMANAN HUTAN (POLHUT) -->
+            <div id="tab-content-div5" class="div-tab-content hidden bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-red-100 text-red-800 font-bold text-xs">SMART PATROL GIS • POLHUT ADAT</span>
+                        <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1.5">Divisi Keamanan Hutan (Polhut)</h3>
+                        <p class="text-sm text-gray-600 mt-1">Sistem pemantauan hutan berbasis SMART Patrol GIS, GPS tracking tim lapangan, dan deteksi dini ancaman hutan.</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-bold bg-emerald-50 text-emerald-800 px-3.5 py-2 rounded-xl border border-emerald-200">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span> 4 Tim Patroli Aktif di Lapangan
+                    </div>
+                </div>
+
+                <!-- Ringkasan Temuan Smart Patrol -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+                    <div class="p-4 rounded-2xl bg-red-50 border border-red-200">
+                        <div class="text-xs font-bold text-red-800">Illegal Logging</div>
+                        <div class="text-2xl font-extrabold text-red-700 mt-1">3 Kasus</div>
+                        <div class="text-[11px] text-gray-600">2 Ditindak, 1 Pemantauan</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200">
+                        <div class="text-xs font-bold text-amber-800">Perburuan Satwa</div>
+                        <div class="text-2xl font-extrabold text-amber-700 mt-1">5 Temuan</div>
+                        <div class="text-[11px] text-gray-600">Jerat Cenderawasih/Kasuari</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-orange-50 border border-orange-200">
+                        <div class="text-xs font-bold text-orange-800">Titik Api / Kebakaran</div>
+                        <div class="text-2xl font-extrabold text-orange-700 mt-1">1 Hotspot</div>
+                        <div class="text-[11px] text-gray-600">Padam (Sabana Sentani)</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-sky-50 border border-sky-200">
+                        <div class="text-xs font-bold text-sky-800">Perambahan Lahan</div>
+                        <div class="text-2xl font-extrabold text-sky-700 mt-1">4 Titik</div>
+                        <div class="text-[11px] text-gray-600">Pemasangan Patok Adat</div>
+                    </div>
+                </div>
+
+                <!-- Log Patroli Harian -->
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-gray-900 text-white">
+                            <tr>
+                                <th class="p-3">Tanggal & GPS</th>
+                                <th class="p-3">Lokasi Sektor</th>
+                                <th class="p-3">Regu Polhut</th>
+                                <th class="p-3">Kategori Temuan</th>
+                                <th class="p-3">Tindakan Lapangan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr>
+                                <td class="p-3 font-mono text-xs">15 Nov 2026<br><span class="text-gray-500">-2.5321, 140.5120</span></td>
+                                <td class="p-3 font-bold">Lereng Selatan Cyclops</td>
+                                <td class="p-3">Regu Alpha (5 Pers)</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-xs">Perburuan Satwa</span></td>
+                                <td class="p-3 text-gray-600">Pemusnahan 12 jerat & sosialisasi kampung</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-mono text-xs">12 Nov 2026<br><span class="text-gray-500">-2.6104, 140.3890</span></td>
+                                <td class="p-3 font-bold">Hutan Adat Kemtuk</td>
+                                <td class="p-3">Regu Bravo (6 Pers)</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-red-100 text-red-800 font-bold text-xs">Illegal Logging</span></td>
+                                <td class="p-3 text-gray-600">Penyitaan chainsaw & koordinasi Dewan Adat</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-mono text-xs">09 Nov 2026<br><span class="text-gray-500">-2.5890, 140.4412</span></td>
+                                <td class="p-3 font-bold">Hulu Sungai Dwen</td>
+                                <td class="p-3">Regu Charlie (4 Pers)</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-xs">Aman / Kondusif</span></td>
+                                <td class="p-3 text-gray-600">Monitoring debit 14 titik mata air utama</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         5. PETA WILAYAH ADAT (WEBGIS INTERAKTIF MIRIP BRWA)
+    ====================================================================== -->
+    <section id="peta-webgis" class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+                <span class="px-3.5 py-1 rounded-full bg-sungai-50 text-sungai-dark font-bold text-xs uppercase tracking-wider">WebGIS Partisipatif • Kabupaten Jayapura</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 mt-2">Peta Wilayah Adat & Konservasi Dwen Yai</h2>
+                <p class="text-gray-600 text-sm sm:text-base mt-1">
+                    Sistem Informasi Geografis partisipatif untuk transparansi batas wilayah adat, hutan adat, situs sakral, zona konservasi, dan titik mata air.
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="toggleMeasureMode()" id="measure-btn" class="px-3.5 py-2 rounded-xl bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-ruler-combined text-sungai"></i> Ukur Jarak/Luas
+                </button>
+                <label class="px-3.5 py-2 rounded-xl bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-file-import text-hutan"></i> Upload GeoJSON
+                    <input type="file" id="geojson-upload" accept=".json,.geojson" class="hidden" onchange="handleGeoJSONUpload(event)">
+                </label>
+                <button onclick="printMapReport()" class="px-3.5 py-2 rounded-xl bg-hutan hover:bg-hutan-dark text-white text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-print text-emas"></i> Cetak Peta PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Toolbar Pencarian & Pengukuran Peta -->
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2 flex-1">
+                <div class="relative flex-1 max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="map-search-input" placeholder="Cari Kampung / Wilayah Adat (cth: Sentani, Kemtuk, Cyclops)..." 
+                           class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-hutan focus:border-hutan outline-none">
+                </div>
+                <button onclick="searchMapLocation()" class="px-4 py-2 rounded-xl bg-sungai hover:bg-sungai-dark text-white text-xs sm:text-sm font-bold transition">Cari</button>
+            </div>
+            <div id="measure-status" class="hidden text-xs font-bold bg-emas-50 text-tanah px-3 py-2 rounded-xl border border-emas flex items-center gap-2">
+                <i class="fa-solid fa-draw-polygon"></i>
+                <span id="measure-output">Klik titik-titik di peta untuk menghitung jarak & luas area.</span>
+                <button onclick="clearMeasurements()" class="underline text-red-700 ml-2">Reset</button>
+            </div>
+            <div class="text-xs text-gray-500 font-medium">
+                Koordinat Pusat: <span class="font-mono text-gray-800">2°34'S 140°28'E (Jayapura)</span>
+            </div>
+        </div>
+
+        <!-- Grid Utama WebGIS: Sidebar Kontrol & Kanvas Peta -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Sidebar Kontrol Layer & Statistik -->
+            <div class="lg:col-span-4 space-y-4">
+                <!-- Pilihan Basemap -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 class="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-sungai"></i> Basemap Peta Dasar
+                    </h3>
+                    <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+                        <button onclick="setBasemap('street')" id="bm-street" class="bm-btn py-2 px-2 rounded-xl bg-hutan text-white text-center transition">Administrasi</button>
+                        <button onclick="setBasemap('satellite')" id="bm-satellite" class="bm-btn py-2 px-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 text-center transition">Satelit</button>
+                        <button onclick="setBasemap('topo')" id="bm-topo" class="bm-btn py-2 px-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 text-center transition">Topografi</button>
+                    </div>
+                </div>
+
+                <!-- Kontrol Layer Tematik -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 class="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-hutan"></i> Layer Spasial Wilayah Adat
+                    </h3>
+                    <div class="space-y-2.5 text-xs sm:text-sm">
+                        <label class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <span class="flex items-center gap-2.5 font-semibold text-gray-800">
+                                <input type="checkbox" checked onchange="toggleMapLayer('wilayahAdat', this.checked)" class="w-4 h-4 accent-hutan rounded">
+                                <span class="w-3.5 h-3.5 rounded bg-emas border border-tanah inline-block"></span> Wilayah Adat (35.000 Ha)
+                            </span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <span class="flex items-center gap-2.5 font-semibold text-gray-800">
+                                <input type="checkbox" checked onchange="toggleMapLayer('hutanAdat', this.checked)" class="w-4 h-4 accent-hutan rounded">
+                                <span class="w-3.5 h-3.5 rounded bg-hutan inline-block"></span> Hutan Adat (7 Kawasan)
+                            </span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <span class="flex items-center gap-2.5 font-semibold text-gray-800">
+                                <input type="checkbox" checked onchange="toggleMapLayer('zonaKonservasi', this.checked)" class="w-4 h-4 accent-hutan rounded">
+                                <span class="w-3.5 h-3.5 rounded bg-emerald-400 border border-emerald-700 inline-block"></span> Zona Konservasi & Pemanfaatan
+                            </span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <span class="flex items-center gap-2.5 font-semibold text-gray-800">
+                                <input type="checkbox" checked onchange="toggleMapLayer('mataAir', this.checked)" class="w-4 h-4 accent-hutan rounded">
+                                <span class="w-3.5 h-3.5 rounded-full bg-sungai inline-block"></span> Titik Mata Air (85 Titik)
+                            </span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <span class="flex items-center gap-2.5 font-semibold text-gray-800">
+                                <input type="checkbox" checked onchange="toggleMapLayer('situsSakral', this.checked)" class="w-4 h-4 accent-hutan rounded">
+                                <span class="w-3.5 h-3.5 rounded-full bg-tanah inline-block"></span> Situs Sakral & Batas Kampung
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dashboard Statistik Wilayah Terpilih -->
+                <div class="bg-gradient-to-br from-hutan-dark to-hutan text-white p-5 rounded-2xl shadow-md">
+                    <div class="text-xs font-bold text-emas uppercase tracking-wider">Ringkasan Spasial BRWA Jayapura</div>
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div class="bg-white/10 p-3 rounded-xl">
+                            <div class="text-xs text-gray-200">Total Terpetakan</div>
+                            <div class="text-lg font-extrabold text-emas">35.000 Ha</div>
+                        </div>
+                        <div class="bg-white/10 p-3 rounded-xl">
+                            <div class="text-xs text-gray-200">Status Registrasi</div>
+                            <div class="text-lg font-extrabold text-emerald-300">8 Terverifikasi</div>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-gray-200 mt-3 leading-relaxed">
+                        Klik poligon atau ikon titik di peta untuk melihat profil marga pemilik ulayat, luas area, dan status pengakuan hukum.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Kanvas Peta Leaflet -->
+            <div class="lg:col-span-8 bg-white p-3 rounded-2xl shadow-md border border-gray-200 relative">
+                <div id="webgis-map"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         6. BERITA & PUBLIKASI
+    ====================================================================== -->
+    <section id="berita" class="py-16 bg-white border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+                <div>
+                    <span class="px-3.5 py-1 rounded-full bg-emas-50 text-tanah font-bold text-xs uppercase tracking-wider">Kabar Lapangan & Publikasi</span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 mt-2">Berita & Dokumentasi Kegiatan</h2>
+                </div>
+
+                <!-- Filter Kategori -->
+                <div class="flex flex-wrap gap-2" id="news-filter-container">
+                    <button onclick="filterNews('Semua')" class="news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-hutan text-white transition">Semua</button>
+                    <button onclick="filterNews('Advokasi')" class="news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Advokasi</button>
+                    <button onclick="filterNews('Pemetaan')" class="news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Pemetaan</button>
+                    <button onclick="filterNews('Konservasi')" class="news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Konservasi</button>
+                    <button onclick="filterNews('Pendidikan')" class="news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Pendidikan</button>
+                    <button onclick="filterNews('Ekonomi')" class="news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Ekonomi</button>
+                </div>
+            </div>
+
+            <!-- Grid Kartu Berita -->
+            <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Diisi dinamis oleh JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         7. DONASI ONLINE & SERTIFIKAT DONATUR INSTAN
+    ====================================================================== -->
+    <section id="donasi" class="py-16 sm:py-20 bg-gradient-to-br from-tanah-dark via-tanah to-hutan-dark text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                <!-- Kolom Kiri: Ajakan & Transparansi -->
+                <div class="lg:col-span-5 space-y-6">
+                    <span class="px-3.5 py-1 rounded-full bg-emas text-hutan-dark font-extrabold text-xs uppercase tracking-wider">Aksi Nyata Konservasi</span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold leading-tight">
+                        Jadilah Bagian Penjaga Hutan Adat Papua
+                    </h2>
+                    <p class="text-sm sm:text-base text-gray-200 leading-relaxed">
+                        Setiap kontribusi Anda langsung mendanai operasional patroli Polhut Adat, pemetaan partisipatif batas kampung, dan pelestarian 85 titik mata air di Kabupaten Jayapura.
+                    </p>
+
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 space-y-3">
+                        <h3 class="font-bold text-emas text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-award"></i> Manfaat & Transparansi Donatur
+                        </h3>
+                        <ul class="text-xs sm:text-sm space-y-2 text-gray-100">
+                            <li><i class="fa-solid fa-check text-emas mr-2"></i><strong>Bukti Donasi Resmi</strong> tercatat otomatis di sistem keuangan yayasan.</li>
+                            <li><i class="fa-solid fa-check text-emas mr-2"></i><strong>Sertifikat Digital Pelindung Hutan Dwen Yai</strong> dapat langsung diunduh/dicetak.</li>
+                            <li><i class="fa-solid fa-check text-emas mr-2"></i><strong>Laporan Pemanfaatan Dana</strong> berkala berbasis koordinat lokasi konservasi.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Mitra Kerjasama -->
+                    <div class="pt-2">
+                        <div class="text-xs font-bold uppercase tracking-wider text-gray-300 mb-3">Didukung & Bermitra Bersama:</div>
+                        <div class="grid grid-cols-3 gap-2 text-center text-[11px] font-bold">
+                            <div class="bg-white/10 p-2.5 rounded-xl border border-white/10">Dewan Adat Suku Jayapura</div>
+                            <div class="bg-white/10 p-2.5 rounded-xl border border-white/10">Jaringan BRWA Papua</div>
+                            <div class="bg-white/10 p-2.5 rounded-xl border border-white/10">Koalisi Hutan Lestari</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Form Donasi & Preview Sertifikat -->
+                <div class="lg:col-span-7 bg-white text-gray-900 rounded-3xl p-6 sm:p-8 shadow-2xl">
+                    <form id="donation-form" onsubmit="processDonation(event)" class="space-y-5">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                            <h3 class="text-lg sm:text-xl font-extrabold text-hutan">Formulir Donasi Konservasi</h3>
+                            <span class="text-xs font-bold text-sungai bg-sungai-50 px-3 py-1 rounded-full">100% Transparan</span>
+                        </div>
+
+                        <!-- Pilih Nominal -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Pilih Nominal Donasi (IDR)</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-2.5">
+                                <button type="button" onclick="selectNominal(100000)" class="nom-btn py-2.5 px-3 rounded-xl border-2 border-gray-200 hover:border-hutan font-bold text-xs sm:text-sm transition">Rp 100.000</button>
+                                <button type="button" onclick="selectNominal(250000)" class="nom-btn py-2.5 px-3 rounded-xl border-2 border-hutan bg-hutan-50 text-hutan font-bold text-xs sm:text-sm transition">Rp 250.000</button>
+                                <button type="button" onclick="selectNominal(500000)" class="nom-btn py-2.5 px-3 rounded-xl border-2 border-gray-200 hover:border-hutan font-bold text-xs sm:text-sm transition">Rp 500.000</button>
+                                <button type="button" onclick="selectNominal(1000000)" class="nom-btn py-2.5 px-3 rounded-xl border-2 border-gray-200 hover:border-hutan font-bold text-xs sm:text-sm transition">Rp 1.000.000</button>
+                            </div>
+                            <input type="number" id="donation-amount" value="250000" min="10000" required
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-900 focus:ring-2 focus:ring-hutan outline-none" placeholder="Atau masukkan nominal lainnya...">
+                        </div>
+
+                        <!-- Data Donatur -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Nama Lengkap / Instansi (Untuk Sertifikat)</label>
+                                <input type="text" id="donor-name" required placeholder="Contoh: Dr. Maria Rumkorem"
+                                       class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-hutan outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Email Pengiriman Bukti & Laporan</label>
+                                <input type="email" id="donor-email" required placeholder="nama@email.com"
+                                       class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-hutan outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Metode Pembayaran -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Metode Pembayaran Online</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment_method" value="QRIS Instan" checked class="peer hidden">
+                                    <div class="p-3 rounded-xl border-2 border-gray-200 peer-checked:border-sungai peer-checked:bg-sungai-50 text-center">
+                                        <i class="fa-solid fa-qrcode text-lg text-sungai block mb-1"></i> QRIS
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment_method" value="Transfer Bank Papua / Mandiri" class="peer hidden">
+                                    <div class="p-3 rounded-xl border-2 border-gray-200 peer-checked:border-sungai peer-checked:bg-sungai-50 text-center">
+                                        <i class="fa-solid fa-building-columns text-lg text-hutan block mb-1"></i> Transfer Bank
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment_method" value="Midtrans Payment Gateway" class="peer hidden">
+                                    <div class="p-3 rounded-xl border-2 border-gray-200 peer-checked:border-sungai peer-checked:bg-sungai-50 text-center">
+                                        <i class="fa-solid fa-credit-card text-lg text-tanah block mb-1"></i> Midtrans
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="payment_method" value="Xendit Virtual Account" class="peer hidden">
+                                    <div class="p-3 rounded-xl border-2 border-gray-200 peer-checked:border-sungai peer-checked:bg-sungai-50 text-center">
+                                        <i class="fa-solid fa-wallet text-lg text-emas-dark block mb-1"></i> Xendit VA
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 rounded-xl bg-hutan hover:bg-hutan-dark text-white font-extrabold text-sm sm:text-base shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-heart text-emas"></i> Proses Donasi & Terbitkan Sertifikat Donatur
+                        </button>
+                    </form>
+
+                    <!-- Hasil Sertifikat & Bukti Donasi Instan -->
+                    <div id="donation-certificate-box" class="hidden mt-6 pt-6 border-t-2 border-dashed border-gray-200">
+                        <div class="bg-gradient-to-br from-emas-50 via-white to-hutan-50 border-4 border-double border-hutan rounded-2xl p-6 text-center relative shadow-inner">
+                            <div class="w-16 h-16 mx-auto bg-black rounded-xl p-1 mb-3 border border-emas">
+                                <img src="Logo Yayasan.jpeg" alt="Logo Yayasan" class="w-full h-full logo-frame"
+                                     onerror="this.onerror=null; this.src='https://placehold.co/100x100/FBC02D/1B5E20?text=DY';">
+                            </div>
+                            <div class="text-[11px] font-extrabold uppercase tracking-widest text-tanah">Sertifikat Apresiasi Pelindung Hutan</div>
+                            <h4 class="text-xl font-extrabold text-hutan mt-1">YAYASAN PELINDUNG HUTAN DWEN YAI</h4>
+                            <p class="text-xs text-gray-600 mt-2">Diberikan dengan penuh rasa hormat kepada:</p>
+                            <div id="cert-donor-name" class="text-xl sm:text-2xl font-extrabold text-gray-900 underline decoration-emas decoration-4 underline-offset-4 my-2">Nama Donatur</div>
+                            <p class="text-xs text-gray-700 max-w-md mx-auto">
+                                Atas kontribusi donasi konservasi sebesar <strong id="cert-amount" class="text-hutan">Rp 250.000</strong> melalui <span id="cert-method">QRIS</span> untuk perlindungan hutan adat & mata air di Kabupaten Jayapura.
+                            </p>
+                            <div class="mt-4 pt-3 border-t border-gray-200 flex flex-wrap justify-between items-center text-[11px] text-gray-500">
+                                <span>No. Bukti: <strong id="cert-tx-id" class="text-gray-800">DY-2026-8841</strong></span>
+                                <span>Tanggal: <strong id="cert-date" class="text-gray-800">17 Nov 2026</strong></span>
+                                <button onclick="window.print()" class="px-3 py-1 rounded-lg bg-hutan text-white font-bold hover:bg-hutan-dark"><i class="fa-solid fa-print mr-1"></i>Cetak Sertifikat</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
+         8. FOOTER DENGAN LOGO UTUH & KONTAK RESMI
+    ====================================================================== -->
+    <footer class="bg-gray-950 text-gray-300 pt-14 pb-8 border-t-4 border-emas no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-gray-800">
+                <!-- Identitas Yayasan & Logo Utuh -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 bg-black rounded-xl p-1 border border-emas flex-shrink-0 flex items-center justify-center">
+                            <img src="Logo Yayasan.jpeg" alt="Logo Yayasan Pelindung Hutan Dwen Yai" class="w-full h-full logo-frame"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/120x120/FBC02D/1B5E20?text=DWEN+YAI';">
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-emas uppercase">Yayasan Pelindung Hutan</div>
+                            <div class="text-lg font-extrabold text-white">DWEN YAI</div>
+                            <div class="text-xs text-sky-400">www.dwenyai.or.id</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        "Menjaga Hutan, Merawat Kehidupan." Platform digital konservasi hutan, perlindungan hak wilayah adat, dan pemberdayaan masyarakat adat Papua.
+                    </p>
+                </div>
+
+                <!-- Navigasi Cepat -->
+                <div>
+                    <h4 class="text-sm font-extrabold text-white uppercase tracking-wider mb-4">Navigasi Utama</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#beranda" class="hover:text-emas transition">Beranda</a></li>
+                        <li><a href="#tentang-kami" class="hover:text-emas transition">Tentang Kami & Struktur</a></li>
+                        <li><a href="#program-divisi" class="hover:text-emas transition">Program 5 Divisi Operasional</a></li>
+                        <li><a href="#peta-webgis" class="hover:text-emas transition">Peta Wilayah Adat (WebGIS)</a></li>
+                        <li><a href="#donasi" class="hover:text-emas transition">Donasi Konservasi Online</a></li>
+                    </ul>
+                </div>
+
+                <!-- 5 Divisi -->
+                <div>
+                    <h4 class="text-sm font-extrabold text-white uppercase tracking-wider mb-4">5 Divisi Operasional</h4>
+                    <ul class="space-y-2 text-xs text-gray-400">
+                        <li>1. Advokasi, Pemetaan & Perencanaan</li>
+                        <li>2. Pemberdayaan Ekonomi & HHBK</li>
+                        <li>3. Pengembangan SDM & SDA</li>
+                        <li>4. Data, Informasi & Open Data GIS</li>
+                        <li>5. Keamanan Hutan (Polhut Adat)</li>
+                    </ul>
+                </div>
+
+                <!-- Kontak Sekretariat -->
+                <div>
+                    <h4 class="text-sm font-extrabold text-white uppercase tracking-wider mb-4">Sekretariat Yayasan</h4>
+                    <ul class="space-y-2.5 text-xs">
+                        <li class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-location-dot text-emas mt-0.5"></i>
+                            <span>Jl. Raya Sentani - Kemtuk, Distrik Sentani, Kabupaten Jayapura, Provinsi Papua</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-envelope text-sky-400"></i>
+                            <span>sekretariat@dwenyai.or.id</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-phone text-emerald-400"></i>
+                            <span>+62 (0967) 591-882 / +62 812-4800-2026</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+                <div>&copy; 2026 Yayasan Pelindung Hutan Dwen Yai (www.dwenyai.or.id). Hak Cipta Dilindungi Undang-Undang.</div>
+                <div>Arsitektur WebGIS Konservasi Wilayah Adat Papua</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- =====================================================================
+         MODAL PORTAL KARYAWAN (LOGIN + VERIFIKASI 2FA OTP EMAIL)
+    ====================================================================== -->
+    <div id="portal-login-modal" class="fixed inset-0 z-[100] hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-200 relative">
+            <button onclick="closePortalModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto bg-black rounded-2xl p-1 border-2 border-emas mb-3">
+                    <img src="Logo Yayasan.jpeg" alt="Logo" class="w-full h-full logo-frame"
+                         onerror="this.onerror=null; this.src='https://placehold.co/100x100/FBC02D/1B5E20?text=DY';">
+                </div>
+                <h3 class="text-xl font-extrabold text-gray-900">Portal Internal Karyawan</h3>
+                <p class="text-xs text-gray-500 mt-1">Sistem Manajemen Terpadu & 2FA OTP Email</p>
+            </div>
+
+            <!-- Step 1: Kredensial & Jabatan -->
+            <form id="login-step-1" onsubmit="requestOTP(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Pilih Jabatan / Hak Akses (Role-Based Access)</label>
+                    <select id="login-role" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-hutan outline-none">
+                        <option value="Ketua Yayasan|Yohanis Dwen, S.Hut|Akses Penuh: Seluruh Sistem, Keuangan & 5 Divisi">Ketua Yayasan (Akses Seluruh Sistem)</option>
+                        <option value="Wakil Ketua|Marten Yoku, S.Si|Manajemen Program, Kemitraan & Evaluasi Divisi">Wakil Ketua (Manajemen Program)</option>
+                        <option value="Sekretaris|Dorcas Wally, S.Sos|Administrasi, Legalitas, SOP & Kesekretariatan">Sekretaris (Administrasi & Legal)</option>
+                        <option value="Bendahara|Esterina Kopeuw, S.E|Pengelolaan RAB, Pengeluaran, Pendapatan & SPJ">Bendahara (Keuangan & RAB)</option>
+                        <option value="Koordinator Program|Lukas Demetouw, S.Hut|Monitoring & Evaluasi Target Seluruh Divisi">Koordinator Program (Monev Semua Divisi)</option>
+                        <option value="Anggota Divisi|Petrus Monim (Divisi GIS & Polhut)|Input Data Lapangan, Patroli & Pemetaan Divisi">Anggota Divisi (Operasional Divisi)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Username / Email Yayasan</label>
+                    <input type="text" id="login-username" value="pengurus@dwenyai.or.id" required
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-hutan outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Kata Sandi</label>
+                    <input type="password" id="login-password" value="dwenyai2026" required
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-hutan outline-none">
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-hutan hover:bg-hutan-dark text-white font-bold text-sm shadow transition">
+                    Lanjut Verifikasi 2FA OTP Email <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                </button>
+            </form>
+
+            <!-- Step 2: Verifikasi OTP Email -->
+            <form id="login-step-2" onsubmit="verifyOTP(event)" class="hidden space-y-4">
+                <div class="bg-sungai-50 border border-sungai/30 rounded-xl p-3.5 text-xs text-sungai-dark">
+                    <i class="fa-solid fa-envelope-circle-check mr-1.5"></i>
+                    Kode OTP 6-digit telah dikirim ke email resmi Anda. (Simulasi kode OTP: <strong class="font-mono text-sm">482910</strong>)
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Masukkan 6-Digit Kode OTP Email</label>
+                    <input type="text" id="otp-input" value="482910" maxlength="6" required
+                           class="w-full px-4 py-3 rounded-xl border-2 border-hutan text-center font-mono text-xl font-extrabold tracking-widest focus:outline-none">
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" onclick="backToStep1()" class="w-1/3 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs">Kembali</button>
+                    <button type="submit" class="w-2/3 py-3 rounded-xl bg-hutan hover:bg-hutan-dark text-white font-bold text-sm shadow">Verifikasi & Masuk Dashboard</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         MODAL DETAIL BERITA & VIDEO DRONE
+    ====================================================================== -->
+    <div id="detail-modal" class="fixed inset-0 z-[100] hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeDetailModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="detail-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         JAVASCRIPT LOGIKA APLIKASI, WEBGIS LEAFLET, CHART & PORTAL
+    ====================================================================== -->
+    <script>
+        // -----------------------------------------------------------------
+        // 1. SISTEM NOTIFIKASI TOAST (PENGGANTI ALERT)
+        // -----------------------------------------------------------------
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                success: 'bg-hutan text-white border-emas',
+                info: 'bg-sungai-dark text-white border-sky-300',
+                warning: 'bg-tanah text-white border-emas',
+                error: 'bg-red-700 text-white border-red-300'
+            };
+            const icons = {
+                success: 'fa-circle-check',
+                info: 'fa-circle-info',
+                warning: 'fa-triangle-exclamation',
+                error: 'fa-circle-xmark'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border-l-4 text-xs sm:text-sm font-semibold transition-all duration-300 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-base"></i><span class="flex-1">${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // -----------------------------------------------------------------
+        // 2. NAVIGASI MOBILE & TAB 5 DIVISI
+        // -----------------------------------------------------------------
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function switchDivisionTab(divId) {
+            document.querySelectorAll('.div-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.div-tab-btn').forEach(btn => {
+                btn.className = 'div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition flex items-center gap-2';
+            });
+
+            document.getElementById(`tab-content-${divId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${divId}`);
+            activeBtn.className = 'div-tab-btn px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-hutan text-white shadow-md transition flex items-center gap-2';
+        }
+
+        function navigateToDivision(divId) {
+            switchDivisionTab(divId);
+            document.getElementById('program-divisi').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // -----------------------------------------------------------------
+        // 3. WEBGIS INTERAKTIF KABUPATEN JAYAPURA (LEAFLET.JS)
+        // -----------------------------------------------------------------
+        let map;
+        let baseLayers = {};
+        let overlayLayers = {};
+        let measureMode = false;
+        let measurePoints = [];
+        let measurePolyline = null;
+
+        function initWebGIS() {
+            // Pusat Peta: Kabupaten Jayapura, Papua (-2.565, 140.460)
+            map = L.map('webgis-map').setView([-2.565, 140.460], 11);
+
+            // Basemaps
+            baseLayers.street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap | WebGIS Dwen Yai'
+            }).addTo(map);
+
+            baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri World Imagery'
+            });
+
+            baseLayers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenTopoMap'
+            });
+
+            // Layer Groups
+            overlayLayers.wilayahAdat = L.layerGroup().addTo(map);
+            overlayLayers.hutanAdat = L.layerGroup().addTo(map);
+            overlayLayers.zonaKonservasi = L.layerGroup().addTo(map);
+            overlayLayers.mataAir = L.layerGroup().addTo(map);
+            overlayLayers.situsSakral = L.layerGroup().addTo(map);
+
+            // Poligon 1: Wilayah Adat Suku Moy & Kemtuk (35.000 Ha indikatif)
+            L.polygon([
+                [-2.515, 140.370], [-2.510, 140.490], [-2.615, 140.510], [-2.630, 140.380]
+            ], {
+                color: '#795548', weight: 2.5, fillColor: '#FBC02D', fillOpacity: 0.22
+            }).bindPopup(`
+                <div class="text-xs space-y-1">
+                    <span class="px-2 py-0.5 bg-amber-100 text-amber-900 font-bold rounded">WILAYAH ADAT TERPETAKAN</span>
+                    <div class="font-extrabold text-sm text-gray-900 pt-1">Wilayah Adat Lembah Grime - Sentani</div>
+                    <div><strong>Luas Indikatif:</strong> 21.400 Ha</div>
+                    <div><strong>Marga Pemilik Ulayat:</strong> Dwen, Yoku, Wally</div>
+                    <div><strong>Status BRWA:</strong> Terverifikasi & Teregistrasi</div>
+                </div>
+            `).addTo(overlayLayers.wilayahAdat);
+
+            // Poligon 2: Hutan Adat Pegunungan Cyclops Selatan
+            L.polygon([
+                [-2.525, 140.470], [-2.522, 140.565], [-2.575, 140.560], [-2.570, 140.475]
+            ], {
+                color: '#0D3B12', weight: 2, fillColor: '#1B5E20', fillOpacity: 0.42
+            }).bindPopup(`
+                <div class="text-xs space-y-1">
+                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-bold rounded">KAWASAN HUTAN ADAT</span>
+                    <div class="font-extrabold text-sm text-gray-900 pt-1">Hutan Adat Penyangga Cyclops</div>
+                    <div><strong>Luas Kawasan:</strong> 8.650 Ha</div>
+                    <div><strong>Fungsi:</strong> Perlindungan Keanekaragaman Hayati & Hulu Air</div>
+                </div>
+            `).addTo(overlayLayers.hutanAdat);
+
+            // Poligon 3: Zona Konservasi & Pemanfaatan HHBK
+            L.polygon([
+                [-2.585, 140.405], [-2.582, 140.465], [-2.620, 140.460], [-2.622, 140.400]
+            ], {
+                color: '#047857', weight: 2, dashArray: '5, 5', fillColor: '#34D399', fillOpacity: 0.35
+            }).bindPopup(`
+                <div class="text-xs space-y-1">
+                    <span class="px-2 py-0.5 bg-teal-100 text-teal-900 font-bold rounded">ZONA PEMANFAATAN LESTARI</span>
+                    <div class="font-extrabold text-sm text-gray-900 pt-1">Zona Panen Madu Hutan & Sagu Adat</div>
+                    <div><strong>Luas Zona:</strong> 4.950 Ha</div>
+                    <div><strong>Pengelola:</strong> Kelompok HHBK Kampung Adat</div>
+                </div>
+            `).addTo(overlayLayers.zonaKonservasi);
+
+            // Titik-titik Mata Air Utama (Simulasi dari 85 Titik Mata Air)
+            const springs = [
+                { name: 'Mata Air Hulu Sungai Dwen', coords: [-2.540, 140.505], debit: '45 Liter/detik' },
+                { name: 'Mata Air Pos 7 Cyclops', coords: [-2.552, 140.535], debit: '38 Liter/detik' },
+                { name: 'Mata Air Kemtuk Gresi', coords: [-2.602, 140.425], debit: '52 Liter/detik' },
+                { name: 'Mata Air Kampung Hobong', coords: [-2.585, 140.515], debit: '29 Liter/detik' }
+            ];
+
+            springs.forEach(sp => {
+                L.circleMarker(sp.coords, {
+                    radius: 8, fillColor: '#039BE5', color: '#FFFFFF', weight: 2, fillOpacity: 0.95
+                }).bindPopup(`
+                    <div class="text-xs">
+                        <div class="font-bold text-sky-700"><i class="fa-solid fa-droplet"></i> Titik Mata Air Terlindungi</div>
+                        <div class="font-extrabold text-gray-900 mt-0.5">${sp.name}</div>
+                        <div>Debit Air: <strong>${sp.debit}</strong></div>
+                    </div>
+                `).addTo(overlayLayers.mataAir);
+            });
+
+            // Titik Situs Sakral & Kampung Adat
+            const sacredSites = [
+                { name: 'Situs Sakral Batu Perjanjian Leluhur', coords: [-2.548, 140.445], ket: 'Zona Inti Larangan Adat' },
+                { name: 'Kampung Adat Ifar Besar', coords: [-2.568, 140.525], ket: 'Pusat Musyawarah Dewan Adat' },
+                { name: 'Kampung Adat Sabron Yaru', coords: [-2.535, 140.415], ket: 'Kampung Dampingan Pemetaan' }
+            ];
+
+            sacredSites.forEach(site => {
+                L.circleMarker(site.coords, {
+                    radius: 8, fillColor: '#5D4037', color: '#FBC02D', weight: 2.5, fillOpacity: 0.95
+                }).bindPopup(`
+                    <div class="text-xs">
+                        <div class="font-bold text-amber-800"><i class="fa-solid fa-landmark"></i> Situs Sakral & Kampung Adat</div>
+                        <div class="font-extrabold text-gray-900 mt-0.5">${site.name}</div>
+                        <div>Keterangan: ${site.ket}</div>
+                    </div>
+                `).addTo(overlayLayers.situsSakral);
+            });
+
+            // Event klik peta untuk fitur Ukur Jarak/Luas
+            map.on('click', function(e) {
+                if (!measureMode) return;
+                measurePoints.push(e.latlng);
+                if (measurePolyline) map.removeLayer(measurePolyline);
+                measurePolyline = L.polyline(measurePoints, { color: '#F9A825', weight: 4 }).addTo(map);
+
+                if (measurePoints.length >= 2) {
+                    let totalMeters = 0;
+                    for (let i = 1; i < measurePoints.length; i++) {
+                        totalMeters += measurePoints[i - 1].distanceTo(measurePoints[i]);
+                    }
+                    const km = (totalMeters / 1000).toFixed(2);
+                    const estHa = ((totalMeters * totalMeters) / 160000).toFixed(1);
+                    document.getElementById('measure-output').innerText = `Jarak: ${km} km | Estimasi Area: ~${estHa} Ha (${measurePoints.length} titik)`;
+                }
+            });
+        }
+
+        function setBasemap(type) {
+            Object.values(baseLayers).forEach(layer => map.removeLayer(layer));
+            baseLayers[type].addTo(map);
+
+            document.querySelectorAll('.bm-btn').forEach(b => {
+                b.className = 'bm-btn py-2 px-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 text-center transition';
+            });
+            document.getElementById(`bm-${type}`).className = 'bm-btn py-2 px-2 rounded-xl bg-hutan text-white text-center transition';
+        }
+
+        function toggleMapLayer(layerName, isChecked) {
+            if (isChecked) {
+                overlayLayers[layerName].addTo(map);
+            } else {
+                map.removeLayer(overlayLayers[layerName]);
+            }
+        }
+
+        function searchMapLocation() {
+            const q = document.getElementById('map-search-input').value.toLowerCase().trim();
+            if (!q) {
+                showToast('Masukkan nama kampung atau lokasi di Jayapura.', 'warning');
+                return;
+            }
+            const locations = {
+                'sentani': [-2.568, 140.525, 'Kampung Adat Ifar Besar & Danau Sentani'],
+                'cyclops': [-2.545, 140.520, 'Kawasan Hutan Adat Pegunungan Cyclops'],
+                'kemtuk': [-2.602, 140.425, 'Wilayah Adat Kemtuk Gresi'],
+                'nimboran': [-2.620, 140.360, 'Distrik Nimboran, Kabupaten Jayapura'],
+                'dwen': [-2.540, 140.505, 'Mata Air Hulu Sungai Dwen']
+            };
+
+            let found = null;
+            for (const key in locations) {
+                if (q.includes(key)) { found = locations[key]; break; }
+            }
+
+            if (found) {
+                map.flyTo([found[0], found[1]], 13);
+                showToast(`Menampilkan lokasi: ${found[2]}`, 'success');
+            } else {
+                map.flyTo([-2.565, 140.460], 11);
+                showToast(`Menampilkan cakupan Kabupaten Jayapura untuk "${q}"`, 'info');
+            }
+        }
+
+        function toggleMeasureMode() {
+            measureMode = !measureMode;
+            const statusBox = document.getElementById('measure-status');
+            const btn = document.getElementById('measure-btn');
+            if (measureMode) {
+                statusBox.classList.remove('hidden');
+                btn.classList.add('bg-emas-50', 'border-emas');
+                showToast('Mode ukur aktif: Klik titik-titik pada peta.', 'info');
+            } else {
+                statusBox.classList.add('hidden');
+                btn.classList.remove('bg-emas-50', 'border-emas');
+                clearMeasurements();
+            }
+        }
+
+        function clearMeasurements() {
+            measurePoints = [];
+            if (measurePolyline) map.removeLayer(measurePolyline);
+            document.getElementById('measure-output').innerText = 'Klik titik-titik di peta untuk menghitung jarak & luas area.';
+        }
+
+        function handleGeoJSONUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const geojson = JSON.parse(e.target.result);
+                    const layer = L.geoJSON(geojson, {
+                        style: { color: '#F9A825', weight: 3, fillOpacity: 0.3 }
+                    }).addTo(map);
+                    map.fitBounds(layer.getBounds());
+                    showToast(`Berhasil memuat layer GeoJSON: ${file.name}`, 'success');
+                } catch (err) {
+                    showToast('Format file GeoJSON tidak valid.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function printMapReport() {
+            showToast('Menyiapkan lembar cetak Peta Wilayah Adat PDF...', 'info');
+            setTimeout(() => window.print(), 600);
+        }
+
+        // -----------------------------------------------------------------
+        // 4. CHART STATISTIK EKONOMI DIVISI 2
+        // -----------------------------------------------------------------
+        function initEconomyChart() {
+            const ctx = document.getElementById('economyChart');
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['2022', '2023', '2024', '2025', '2026'],
+                    datasets: [
+                        {
+                            label: 'HHBK (Madu & Sagu)',
+                            data: [85, 130, 195, 260, 340],
+                            backgroundColor: '#1B5E20',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Ekowisata & UMKM',
+                            data: [50, 95, 140, 215, 295],
+                            backgroundColor: '#FBC02D',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // -----------------------------------------------------------------
+        // 5. BERITA & PUBLIKASI DENGAN FILTER KATEGORI
+        // -----------------------------------------------------------------
+        const newsData = [
+            {
+                id: 1,
+                category: 'Pemetaan',
+                title: 'Pemetaan Partisipatif 35.000 Hektar Wilayah Adat di Kabupaten Jayapura Rampung Diverifikasi',
+                date: '14 November 2026',
+                author: 'Divisi Advokasi & Pemetaan',
+                img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
+                summary: 'Tim GIS Yayasan Dwen Yai bersama tetua adat 12 kampung menyelesaikan delineasi batas ulayat dan 85 titik mata air.',
+                content: 'Proses pemetaan partisipatif dilakukan selama 8 bulan menggunakan teknologi GPS geodetik dan pemetaan drone resolusi tinggi. Data spasial ini menjadi dasar pengajuan pengakuan hutan adat ke pemerintah daerah dan Kementerian Lingkungan Hidup dan Kehutanan.'
+            },
+            {
+                id: 2,
+                category: 'Konservasi',
+                title: 'Patroli Polhut Adat Dwen Yai Selamatkan Habitat Cenderawasih di Lereng Cyclops',
+                date: '08 November 2026',
+                author: 'Divisi Keamanan Hutan',
+                img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
+                summary: 'Regu patroli gabungan pemuda kampung berhasil membersihkan puluhan jerat satwa liar menggunakan sistem SMART Patrol.',
+                content: 'Melalui patroli rutin berbasis SMART Patrol GIS, regu Polhut Adat tidak hanya memantau tutupan hutan, tetapi juga memasang papan larangan adat pada jalur-jalur rawan perburuan satwa endemik Papua.'
+            },
+            {
+                id: 3,
+                category: 'Ekonomi',
+                title: 'Panen Raya Madu Hutan Tabi Tingkatkan Pendapatan Kelompok Tani Adat',
+                date: '02 November 2026',
+                author: 'Divisi Pemberdayaan Ekonomi',
+                img: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=800&q=80',
+                summary: 'Sebanyak 450 liter madu hutan murni berhasil dipanen secara lestari tanpa merusak pohon inang di Distrik Kemtuk.',
+                content: 'Pendampingan pascapanen dan pengemasan higienis membuat produk Madu Hutan Tabi kini menembus pasar ritel di Kota Jayapura dan Sentani dengan nilai jual yang lebih adil bagi masyarakat adat.'
+            },
+            {
+                id: 4,
+                category: 'Advokasi',
+                title: 'Musyawarah Besar Dewan Adat Perkuat Perlindungan Hukum Hulu Sungai Dwen',
+                date: '25 Oktober 2026',
+                author: 'Divisi Advokasi & Hukum',
+                img: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+                summary: 'Kesepakatan lintas marga menetapkan zona lindung abadi di sekitar daerah tangkapan air utama Sentani.',
+                content: 'Kesepakatan adat ini melarang segala bentuk pembukaan lahan skala besar maupun penebangan kayu komersial di radius 500 meter dari titik-titik mata air utama.'
+            },
+            {
+                id: 5,
+                category: 'Pendidikan',
+                title: 'Pelatihan Kader Lingkungan Muda Papua: Mengoperasikan Drone & WebGIS',
+                date: '18 Oktober 2026',
+                author: 'Divisi Pengembangan SDM',
+                img: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=800&q=80',
+                summary: 'Sebanyak 42 pemuda-pemudi perwakilan 12 kampung adat dilatih mengoperasikan drone pemetaan dan aplikasi GPS lapangan.',
+                content: 'Kaderisasi teknologi konservasi ini bertujuan memastikan generasi muda Papua menjadi tuan di atas tanahnya sendiri dalam mengelola data spasial wilayah adat.'
+            }
+        ];
+
+        function renderNews(category = 'Semua') {
+            const grid = document.getElementById('news-grid');
+            const filtered = category === 'Semua' ? newsData : newsData.filter(n => n.category === category);
+            
+            grid.innerHTML = filtered.map(item => `
+                <article class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-200 transition flex flex-col">
+                    <div class="relative h-48 overflow-hidden bg-gray-200">
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover hover:scale-105 transition duration-500"
+                             onerror="this.onerror=null; this.src='https://placehold.co/600x400/1B5E20/FFFFFF?text=Konservasi+Dwen+Yai';">
+                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-hutan text-emas text-xs font-extrabold shadow">${item.category}</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs text-gray-500 mb-1.5"><i class="fa-regular fa-calendar mr-1"></i>${item.date} • ${item.author}</div>
+                            <h3 class="font-extrabold text-base sm:text-lg text-gray-900 leading-snug line-clamp-2">${item.title}</h3>
+                            <p class="text-xs sm:text-sm text-gray-600 mt-2 line-clamp-3">${item.summary}</p>
+                        </div>
+                        <button onclick="openNewsModal(${item.id})" class="mt-4 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-sungai hover:text-sungai-dark">
+                            Baca Selengkapnya <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function filterNews(cat) {
+            document.querySelectorAll('.news-cat-btn').forEach(btn => {
+                btn.className = 'news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition';
+                if (btn.innerText === cat) {
+                    btn.className = 'news-cat-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-hutan text-white transition';
+                }
+            });
+            renderNews(cat);
+        }
+
+        function openNewsModal(id) {
+            const item = newsData.find(n => n.id === id);
+            if (!item) return;
+            document.getElementById('detail-modal-body').innerHTML = `
+                <span class="px-3 py-1 rounded-full bg-hutan-50 text-hutan text-xs font-extrabold">${item.category}</span>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-3">${item.title}</h3>
+                <div class="text-xs text-gray-500 mt-1 mb-4">${item.date} • Oleh ${item.author}</div>
+                <img src="${item.img}" alt="${item.title}" class="w-full h-64 object-cover rounded-2xl mb-4"
+                     onerror="this.onerror=null; this.src='https://placehold.co/800x400/1B5E20/FFFFFF?text=Yayasan+Dwen+Yai';">
+                <p class="text-sm text-gray-700 leading-relaxed mb-3 font-medium">${item.summary}</p>
+                <p class="text-sm text-gray-600 leading-relaxed">${item.content}</p>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function openDroneModal() {
+            document.getElementById('detail-modal-body').innerHTML = `
+                <span class="px-3 py-1 rounded-full bg-sungai-50 text-sungai-dark text-xs font-extrabold">DOKUMENTASI UDARA DRONE MAPPING</span>
+                <h3 class="text-xl font-extrabold text-gray-900 mt-2">Pemantauan Udara Hutan Adat & Pegunungan Cyclops</h3>
+                <p class="text-xs text-gray-600 mt-1 mb-4">Hasil survei udara Divisi Data & Informasi dan Tim Polhut Yayasan Pelindung Hutan Dwen Yai.</p>
+                <div class="relative rounded-2xl overflow-hidden bg-gray-900 aspect-video flex items-center justify-center border border-gray-300">
+                    <img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover opacity-75" alt="Drone View">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 bg-black/40">
+                        <div class="w-16 h-16 rounded-full bg-emas text-hutan-dark flex items-center justify-center text-2xl shadow-lg mb-3">
+                            <i class="fa-solid fa-helicopter"></i>
+                        </div>
+                        <div class="font-extrabold text-base sm:text-lg">Ortofoto & Pemantauan Tutupan Kanopi Hutan Adat</div>
+                        <div class="text-xs text-gray-200 mt-1">Resolusi 5 cm/piksel • Ketinggian Terbang 250m AGL • Kabupaten Jayapura</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        // -----------------------------------------------------------------
+        // 6. DONASI ONLINE & GENERATOR SERTIFIKAT INSTAN
+        // -----------------------------------------------------------------
+        function selectNominal(amount) {
+            document.getElementById('donation-amount').value = amount;
+            document.querySelectorAll('.nom-btn').forEach(btn => {
+                btn.className = 'nom-btn py-2.5 px-3 rounded-xl border-2 border-gray-200 hover:border-hutan font-bold text-xs sm:text-sm transition';
+            });
+            event.target.className = 'nom-btn py-2.5 px-3 rounded-xl border-2 border-hutan bg-hutan-50 text-hutan font-bold text-xs sm:text-sm transition';
+        }
+
+        function processDonation(e) {
+            e.preventDefault();
+            const amount = parseInt(document.getElementById('donation-amount').value || 0);
+            const name = document.getElementById('donor-name').value.trim();
+            const method = document.querySelector('input[name="payment_method"]:checked').value;
+
+            if (!name || amount < 10000) {
+                showToast('Mohon isi nama lengkap dan nominal minimal Rp 10.000.', 'warning');
+                return;
+            }
+
+            const formattedAmount = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+            const txId = 'DY-2026-' + Math.floor(1000 + Math.random() * 9000);
+            const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            document.getElementById('cert-donor-name').innerText = name;
+            document.getElementById('cert-amount').innerText = formattedAmount;
+            document.getElementById('cert-method').innerText = method;
+            document.getElementById('cert-tx-id').innerText = txId;
+            document.getElementById('cert-date').innerText = today;
+
+            const certBox = document.getElementById('donation-certificate-box');
+            certBox.classList.remove('hidden');
+            certBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            showToast(`Terima kasih ${name}! Sertifikat Donatur (${txId}) berhasil diterbitkan.`, 'success');
+        }
+
+        // -----------------------------------------------------------------
+        // 7. PORTAL KARYAWAN (2FA OTP & ROLE-BASED ACCESS CONTROL)
+        // -----------------------------------------------------------------
+        let selectedRoleData = null;
+
+        function openPortalModal() {
+            document.getElementById('portal-login-modal').classList.remove('hidden');
+        }
+
+        function closePortalModal() {
+            document.getElementById('portal-login-modal').classList.add('hidden');
+        }
+
+        function requestOTP(e) {
+            e.preventDefault();
+            const rawVal = document.getElementById('login-role').value;
+            const [role, personName, accessDesc] = rawVal.split('|');
+            selectedRoleData = { role, personName, accessDesc };
+
+            document.getElementById('login-step-1').classList.add('hidden');
+            document.getElementById('login-step-2').classList.remove('hidden');
+            showToast('Kode OTP 2FA dikirim ke email resmi pengurus.', 'info');
+        }
+
+        function backToStep1() {
+            document.getElementById('login-step-2').classList.add('hidden');
+            document.getElementById('login-step-1').classList.remove('hidden');
+        }
+
+        function verifyOTP(e) {
+            e.preventDefault();
+            const otp = document.getElementById('otp-input').value.trim();
+            if (otp.length !== 6) {
+                showToast('Masukkan 6 digit kode OTP yang valid.', 'error');
+                return;
+            }
+
+            // Aktifkan Workspace Internal Karyawan
+            document.getElementById('emp-role-badge').innerText = selectedRoleData.role;
+            document.getElementById('emp-display-name').innerText = selectedRoleData.personName;
+            document.getElementById('emp-access-desc').innerText = selectedRoleData.accessDesc;
+
+            // Pengaturan tampilan hak akses modul keuangan berdasarkan jabatan
+            const finTag = document.getElementById('finance-permission-tag');
+            if (selectedRoleData.role === 'Ketua Yayasan' || selectedRoleData.role === 'Bendahara') {
+                finTag.innerText = 'Akses Penuh: Edit & Approval RAB';
+                finTag.className = 'text-[11px] px-2.5 py-1 rounded bg-emerald-900/70 text-emerald-300 border border-emerald-700';
+            } else {
+                finTag.innerText = 'Mode Lihat (Read-Only Sesuai Jabatan)';
+                finTag.className = 'text-[11px] px-2.5 py-1 rounded bg-amber-900/70 text-amber-300 border border-amber-700';
+            }
+
+            document.getElementById('internal-employee-workspace').classList.remove('hidden');
+            document.getElementById('header-portal-text').innerText = selectedRoleData.role;
+
+            closePortalModal();
+            backToStep1();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast(`Selamat datang, ${selectedRoleData.personName} (${selectedRoleData.role})!`, 'success');
+        }
+
+        function logoutPortal() {
+            document.getElementById('internal-employee-workspace').classList.add('hidden');
+            document.getElementById('header-portal-text').innerText = 'Portal Karyawan';
+            showToast('Anda telah keluar dari Portal Internal Karyawan.', 'info');
+        }
+
+        // -----------------------------------------------------------------
+        // INISIALISASI SAAT HALAMAN DIMUAT
+        // -----------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            initWebGIS();
+            initEconomyChart();
+            renderNews('Semua');
+        });
+    </script>
+</body>
+</html>
